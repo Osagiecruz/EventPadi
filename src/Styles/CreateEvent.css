@@ -1,0 +1,32 @@
+.create-event-container {
+    padding: 20px;
+    max-width: 600px;
+    margin: auto;
+}
+
+.create-event-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.create-event-form label {
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+.create-event-form input, 
+.create-event-form input {
+    padding: 8px;
+    font-size: 14px;
+}
+
+.create-event-form button {
+    margin-top: 15px;
+    padding: 10px;
+    font-size: 16px;
+    background-color: #1e90ff;
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+    border: none;
+}

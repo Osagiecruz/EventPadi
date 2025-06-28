@@ -1,0 +1,25 @@
+.header {
+  /* border: 1px solid red; */
+    background-color: #222;
+  color: white;
+  padding: 1em;
+  text-align: center;
+}
+
+.header-title {
+  margin: 0;
+  font-size: 24px;
+}
+
+.header-nav {
+  margin-top: 10px;
+  /* border: 1px solid red;
+  justify-content: space-evenly; */
+}
+
+.header-nav a {
+  margin: 0 10px;
+  color: #1e90ff;
+  /* border: 1px solid red;
+  justify-content: space-evenly; */
+}

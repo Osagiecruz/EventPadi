@@ -1,0 +1,44 @@
+.profile-parent {
+    /* border: 1px solid blue; */
+    height: 87vh;
+    width: 100%;
+    background-color: hsl(217, 48%, 68%);
+}
+
+.profile-container {
+    /* border: 1px solid red; */
+    padding: 20px;
+    max-width: 600px;
+    margin: auto;
+    /* border: 1px solid blue; */
+}
+
+.profile-container h2 {
+    text-align: center;
+}
+
+.profile-info {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    border: 1px solid#ccc;
+    display: flex;
+    flex-direction: column;
+    /* justify-content: space-evenly; */
+}
+
+.profile-info p {
+    margin: 5px 0;
+    padding: 15px;
+}
+
+.readonly-textarea {
+  background-color: #f5f5f5 !important;
+  cursor: default !important;
+  resize: none !important;
+}
+
+.readonly-textarea:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}

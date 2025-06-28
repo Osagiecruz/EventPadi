@@ -1,30 +1,46 @@
 .profile-parent {
     /* border: 1px solid blue; */
-    height: 87vh;
+    min-height: 100vh;
     width: 100%;
     background-color: hsl(217, 48%, 68%);
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .profile-container {
-    /* border: 1px solid red; */
-    padding: 20px;
-    max-width: 600px;
+    display: flex;
+    gap: 30px;
+    max-width: 1200px;
     margin: auto;
-    /* border: 1px solid blue; */
+    width: 100%;
+    align-items: flex-start;
+    /* border: 1px solid red; */
 }
 
 .profile-container h2 {
     text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Left side - Profile Information */
+.profile-left {
+    flex: 1;
+    min-width: 400px;
+}
+
+/* Right side - Profile Information */
+.profile-right {
+    padding-top: 11px;
 }
 
 .profile-info {
     background-color: #fff;
     padding: 30px;
     border-radius: 10px;
-    border: 1px solid#ccc;
+    border: 1px solid #ccc;
     display: flex;
     flex-direction: column;
-    /* justify-content: space-evenly; */
 }
 
 .profile-info p {
@@ -32,13 +48,161 @@
     padding: 15px;
 }
 
-.readonly-textarea {
-  background-color: #f5f5f5 !important;
-  cursor: default !important;
-  resize: none !important;
+/* Right side - Events Section */
+.profile-right {
+    flex: 1;
+    min-width: 400px;
 }
 
-.readonly-textarea:focus {
-  outline: none !important;
-  box-shadow: none !important;
+.events-section {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    height: fit-content;
+}
+
+.events-section h3 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 1.5em;
+}
+
+.events-section h4 {
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+}
+
+.events-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.event-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.event-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Online Status Styling */
+.online-status {
+    margin-bottom: 15px !important;
+}
+
+/* Form Elements */
+.profile-info input,
+.profile-info textarea {
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.profile-info input:focus,
+.profile-info textarea:focus {
+    outline: none;
+    border-color: #2196F3;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.profile-info label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+    color: #555;
+}
+
+/* Button Styling */
+.profile-info button {
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.profile-info button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Read-only Elements */
+.readonly-textarea,
+.readonly-input {
+    background-color: #f5f5f5 !important;
+    cursor: default !important;
+    border-color: #e0e0e0 !important;
+}
+
+.readonly-textarea {
+    resize: none !important;
+}
+
+.readonly-textarea:focus,
+.readonly-input:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: #e0e0e0 !important;
+}
+
+/* Scrollbar Styling for Events List */
+.events-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.events-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.events-list::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.events-list::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .profile-container {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .profile-left,
+    .profile-right {
+        min-width: unset;
+        width: 100%;
+    }
+    
+    .profile-parent {
+        padding: 10px;
+    }
+    
+    .profile-info,
+    .events-section {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-info,
+    .events-section {
+        padding: 15px;
+    }
+    
+    .profile-info p {
+        padding: 10px;
+    }
+    
+    .events-list {
+        max-height: 300px;
+    }
 }

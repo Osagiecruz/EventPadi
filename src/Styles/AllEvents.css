@@ -261,6 +261,59 @@
   border-color: #004085;
 }
 
+.event-registration {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.registered-count {
+  color: #666;
+  font-size: 0.9em;
+  margin-bottom: 10px;
+}
+
+.register-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-bottom: 5px;
+  width: 100%;
+}
+
+.register-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.register-btn:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.registered-status {
+  color: #28a745;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.join-btn.registered {
+  background-color: #28a745;
+}
+
+.register-note, .login-required {
+  font-size: 0.85em;
+  color: #666;
+  font-style: italic;
+}
+
+.registration-success, .registration-required {
+  text-align: center;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .allevents-header {

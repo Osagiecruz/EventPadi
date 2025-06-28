@@ -37,3 +37,21 @@
     cursor: pointer;
     border: none;
 }
+
+.login-links {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.login-links p {
+  margin: 10px 0;
+}
+
+.login-links a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.login-links a:hover {
+  text-decoration: underline;
+}

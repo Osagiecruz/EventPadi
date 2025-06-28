@@ -9,6 +9,7 @@ import Profile from './Components/Profile';
 import PrivateRoute from './Components/PrivateRoute';
 import CreateEvent from './Components/CreateEvent';
 import AllEvents from "./Components/AllEvents"; 
+import { AuthProvider } from './Context/AuthContext';
 
 
 import './Styles/index.css'
@@ -29,6 +30,8 @@ import './Styles/AllEvents.css';
   
   return (
     <Router>
+      <AuthProvider>
+        <div className="App">
        <Header />
      <Routes>
       <Route path="/" element={<Home />} />
@@ -55,6 +58,8 @@ import './Styles/AllEvents.css';
       </PrivateRoute>
       } />
      </Routes>
+     </div>
+      </AuthProvider>
     </Router>
   );
 };

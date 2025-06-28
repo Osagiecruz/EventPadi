@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { db } from '../Firebase.jsx';
-import '../Styles/AllEvents.css'; // Updated CSS filename
+import { useAuth } from '../Context/AuthContext'; // Import the auth context
+import '../Styles/AllEvents.css';
 
 export default function AllEvents() {
+  const { currentUser } = useAuth(); // Get current user from context
   const [events, setEvents] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [displayedEvents, setDisplayedEvents] = useState([]);
@@ -14,6 +16,16 @@ export default function AllEvents() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [eventsPerPage] = useState(6);
+  const [registeredEvents, setRegisteredEvents] = useState(new Set());
+  const [registeringEvents, setRegisteringEvents] = useState(new Set());
+
+
+  // Get current user (you might need to import this from your auth context)
+  const getCurrentUser = () => {
+    // Replace this with your actual user authentication logic
+    // For example: return auth.currentUser;
+    return JSON.parse(localStorage.getItem('currentUser')) || null;
+  };
 
   // Function to get random events and paginate them
   const getRandomEventsPaginated = (eventsList, page, perPage) => {
@@ -38,6 +50,26 @@ export default function AllEvents() {
 
   // Calculate total pages
   const totalPages = Math.ceil(filtered.length / eventsPerPage);
+
+
+   // Check if user is registered for an event
+  const isUserRegistered = (eventId, registeredUsers = []) => {
+    if (!currentUser) return false;
+    return registeredUsers.includes(currentUser.uid);
+  };
+
+  // Load user's registered events from localStorage when user changes
+  useEffect(() => {
+    if (currentUser) {
+      const userRegistrations = JSON.parse(
+        localStorage.getItem(`registeredEvents_${currentUser.uid}`)
+      ) || [];
+      setRegisteredEvents(new Set(userRegistrations));
+    } else {
+      setRegisteredEvents(new Set());
+    }
+  }, [currentUser]);
+
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -73,6 +105,68 @@ export default function AllEvents() {
     const newDisplayed = getRandomEventsPaginated(filtered, currentPage, eventsPerPage);
     setDisplayedEvents(newDisplayed);
   }, [currentPage, filtered, eventsPerPage]);
+
+ // Handle event registration with proper auth
+  const handleRegisterForEvent = async (eventId) => {
+    if (!currentUser) {
+      alert('Please log in to register for events.');
+      return;
+    }
+
+    try {
+      setRegisteringEvents(prev => new Set([...prev, eventId]));
+      
+      // Update Firestore
+      const eventRef = doc(db, 'events', eventId);
+      await updateDoc(eventRef, {
+        registeredUsers: arrayUnion(currentUser.uid),
+        // Also store user info for easier access
+        registeredUsersInfo: arrayUnion({
+          uid: currentUser.uid,
+          email: currentUser.email,
+          displayName: currentUser.displayName || 'Anonymous',
+          registeredAt: new Date().toISOString()
+        })
+      });
+
+      // Update local state
+      setRegisteredEvents(prev => new Set([...prev, eventId]));
+      
+      // Update localStorage
+      const currentRegistrations = JSON.parse(
+        localStorage.getItem(`registeredEvents_${currentUser.uid}`)
+      ) || [];
+      const updatedRegistrations = [...currentRegistrations, eventId];
+      localStorage.setItem(
+        `registeredEvents_${currentUser.uid}`, 
+        JSON.stringify(updatedRegistrations)
+      );
+      
+      // Update the events list
+      setEvents(prevEvents => 
+        prevEvents.map(event => 
+          event.id === eventId 
+            ? { 
+                ...event, 
+                registeredUsers: [...(event.registeredUsers || []), currentUser.uid] 
+              }
+            : event
+        )
+      );
+      
+      alert('Successfully registered for the event!');
+    } catch (error) {
+      console.error('Error registering for event:', error);
+      alert('Failed to register for event. Please try again.');
+    } finally {
+      setRegisteringEvents(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(eventId);
+        return newSet;
+      });
+    }
+  };
+
 
   const handleFilter = (value) => {
     setCategory(value);
@@ -163,6 +257,13 @@ export default function AllEvents() {
         <Link to="/" className="back-home-btn">← Back to Home</Link>
       </div>
       
+      {/* Show user info if logged in */}
+      {currentUser && (
+        <div className="user-info">
+          <p>Welcome, {currentUser.displayName || currentUser.email}!</p>
+        </div>
+      )}
+      
       <Link to="/createevent" className="create-event-btn">
         <strong>+ Create Event</strong>
       </Link>
@@ -196,7 +297,6 @@ export default function AllEvents() {
         </div>
       </div>
 
-      {/* Pagination Info */}
       {filtered.length > 0 && (
         <div className="pagination-info">
           <p>
@@ -216,7 +316,6 @@ export default function AllEvents() {
                   setSearch('');
                   setCategory('All');
                   setCurrentPage(1);
-                  // This will trigger the useEffect to update filtered and displayedEvents
                 }}
                 className="clear-filters-btn"
               >
@@ -226,25 +325,59 @@ export default function AllEvents() {
           </div>
         )}
         
-        {displayedEvents.map(event => (
-          <div key={event.id} className="event-card">
-            <h3>{event.title}</h3>
-            <p className="event-date-location">
-              <span className="date">{event.date}</span> - 
-              <span className="location">{event.location}</span>
-            </p>
-            <p className="event-category">
-              <strong>Category:</strong> {event.category}
-            </p>
-            {event.description && (
-              <p className="event-description">{event.description}</p>
-            )}
-            <Link to={`/event/${event.id}`} className="join-btn">
-              Join with Others
-            </Link>
-          </div>
-        ))}
+        {displayedEvents.map(event => {
+          const isRegistered = isUserRegistered(event.id, event.registeredUsers) || registeredEvents.has(event.id);
+          const isRegistering = registeringEvents.has(event.id);
+          
+          return (
+            <div key={event.id} className="event-card">
+              <h3>{event.title}</h3>
+              <p className="event-date-location">
+                <span className="date">{event.date}</span> - 
+                <span className="location">{event.location}</span>
+              </p>
+              <p className="event-category">
+                <strong>Category:</strong> {event.category}
+              </p>
+              {event.description && (
+                <p className="event-description">{event.description}</p>
+              )}
+              
+              <div className="event-registration">
+                <p className="registered-count">
+                  <strong>{(event.registeredUsers || []).length} people registered</strong>
+                </p>
+                
+                {!currentUser ? (
+                  <div className="login-required">
+                    <p>Please log in to register for events</p>
+                    <Link to="/login" className="login-link">Go to Login</Link>
+                  </div>
+                ) : isRegistered ? (
+                  <div className="registration-success">
+                    <p className="registered-status">✅ You're registered!</p>
+                    <Link to={`/event/${event.id}`} className="join-btn registered">
+                      Join Chat
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="registration-required">
+                    <button 
+                      onClick={() => handleRegisterForEvent(event.id)}
+                      disabled={isRegistering}
+                      className="register-btn"
+                    >
+                      {isRegistering ? 'Registering...' : 'Register for Event'}
+                    </button>
+                    <p className="register-note">Register to access the chat</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
+
 
       {/* Pagination Controls */}
       {totalPages > 1 && (

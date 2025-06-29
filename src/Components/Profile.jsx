@@ -16,6 +16,36 @@ const Profile = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [userEvents, setUserEvents] = useState({ present: [], past: [] });
   const [eventsLoading, setEventsLoading] = useState(false);
+  const [canEditUsername, setCanEditUsername] = useState(true);
+  const [nextUsernameEditDate, setNextUsernameEditDate] = useState(null);
+
+  // Function to check if username can be edited (once per month restriction)
+  const checkUsernameEditability = (lastUsernameChange) => {
+    if (!lastUsernameChange) {
+      return { canEdit: true, nextEditDate: null };
+    }
+
+    const lastChangeDate = new Date(lastUsernameChange);
+    const now = new Date();
+    const oneMonthLater = new Date(lastChangeDate);
+    oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
+
+    const canEdit = now >= oneMonthLater;
+    return {
+      canEdit,
+      nextEditDate: canEdit ? null : oneMonthLater
+    };
+  };
+
+  // Function to format the next edit date
+  const formatNextEditDate = (date) => {
+    if (!date) return '';
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
 
   // Online/Offline status monitoring
   useEffect(() => {
@@ -94,6 +124,11 @@ const Profile = () => {
             setUsername(data.username || '');
             setInterests(data.interests ? data.interests.join(', ') : '');
             setIsEditing(false);
+
+            // Check username editability
+            const usernameEditability = checkUsernameEditability(data.lastUsernameChange);
+            setCanEditUsername(usernameEditability.canEdit);
+            setNextUsernameEditDate(usernameEditability.nextEditDate);
           } else {
             console.log('No document found for user:', currentUser.uid);
             setProfileData({});
@@ -101,6 +136,8 @@ const Profile = () => {
             setUsername('');
             setInterests('');
             setIsEditing(true);
+            setCanEditUsername(true);
+            setNextUsernameEditDate(null);
           }
 
           // Fetch user's registered events
@@ -115,6 +152,8 @@ const Profile = () => {
         setUsername('');
         setInterests('');
         setUserEvents({ present: [], past: [] });
+        setCanEditUsername(true);
+        setNextUsernameEditDate(null);
       }
       setLoading(false);
     });
@@ -130,24 +169,43 @@ const Profile = () => {
     
     try {
       const docRef = doc(db, 'users', user.uid);
-      const profileData = {
+      
+      // Check if username was changed
+      const usernameChanged = profileData?.username !== username;
+      const currentTime = new Date().toISOString();
+      
+      const profileDataToSave = {
         email: user.email,
         username: username || '',
         bio: bio || '',
         interests: interests ? interests.split(',').map(item => item.trim()).filter(item => item !== '') : [],
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: currentTime,
         uid: user.uid,
         isOnline: isOnline,
-        lastSeen: new Date().toISOString()
+        lastSeen: currentTime
       };
+
+      // If username was changed, update the lastUsernameChange timestamp
+      if (usernameChanged && canEditUsername) {
+        profileDataToSave.lastUsernameChange = currentTime;
+      }
       
-      console.log('Profile data to save:', profileData);
+      console.log('Profile data to save:', profileDataToSave);
       
-      await setDoc(docRef, profileData, { merge: true });
+      await setDoc(docRef, profileDataToSave, { merge: true });
       console.log('Profile saved successfully');
       
-      setProfileData(profileData);
+      setProfileData(profileDataToSave);
       setIsEditing(false);
+      
+      // Update username editability if username was changed
+      if (usernameChanged && canEditUsername) {
+        setCanEditUsername(false);
+        const nextEditDate = new Date();
+        nextEditDate.setMonth(nextEditDate.getMonth() + 1);
+        setNextUsernameEditDate(nextEditDate);
+      }
+      
       alert('Profile saved successfully!');
       
     } catch (error) {
@@ -237,25 +295,53 @@ const Profile = () => {
           <div className="profile-info">
             <p><strong>Email:</strong> {user.email}</p>
             <p><strong>User ID:</strong> {user.uid}</p>
-            <p><strong>Email Verified:</strong> {user.emailVerified ? '✅' : '❌'}</p>
+            <p><strong>Email Verified:</strong> {user.emailVerified ? '❌' : '✅'}</p>
             
             <div>
               <label>Username:</label>
-              <input 
-                type="text"
-                value={username} 
-                onChange={e => setUsername(e.target.value)}
-                placeholder="Enter your username..."
-                style={{
+              {!isEditing ? (
+                <div style={{
                   width: '100%', 
                   margin: '5px 0',
                   padding: '8px',
                   border: '1px solid #ccc',
-                  borderRadius: '4px'
-                }}
-                disabled={!isEditing}
-                className={!isEditing ? 'readonly-input' : ''}
-              />
+                  borderRadius: '4px',
+                  backgroundColor: '#f5f5f5',
+                  minHeight: '20px',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}>
+                  {username || 'No username set'}
+                </div>
+              ) : (
+                <>
+                  <input 
+                    type="text"
+                    value={username} 
+                    onChange={e => setUsername(e.target.value)}
+                    placeholder="Enter your username..."
+                    style={{
+                      width: '100%', 
+                      margin: '5px 0',
+                      padding: '8px',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px'
+                    }}
+                    disabled={!canEditUsername}
+                    className={!canEditUsername ? 'readonly-input' : ''}
+                  />
+                  {!canEditUsername && (
+                    <p style={{ 
+                      color: '#ff9800', 
+                      fontSize: '12px', 
+                      margin: '2px 0 0 0',
+                      fontStyle: 'italic' 
+                    }}>
+                      Username can be changed again on {formatNextEditDate(nextUsernameEditDate)}
+                    </p>
+                  )}
+                </>
+              )}
             </div>
             
             <div>

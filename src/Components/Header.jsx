@@ -33,6 +33,7 @@ function Header () {
         {user ? (
           <>
             <Link to="/profile">Profile</Link>
+            <Link to="/allevents">Events</Link>
             <button onClick={handleLogout} style={{marginLeft: '10px', cursor: 'pointer', background: 'black', color: '#1e90ff', border: 'none'}}>Logout</button>
           </>
         ) : (
